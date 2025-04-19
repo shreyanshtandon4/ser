@@ -4,17 +4,6 @@ import librosa
 import os
 import numpy as np
 from SpeechModel import SpeechModel
-
-EMOTION_DICT_EMODB = {
-    "W": "anger",
-    "L": "boredom",
-    "E": "disgust",
-    "A": "fear",
-    "F": "happiness",
-    "T": "sadness",
-    "N": "Neutral",
-}
-
 EMOTION_DICT_RAVDESS = {
     "01": "neutral",
     "02": "calm",
@@ -46,7 +35,7 @@ def get_dataset(
     val_split=0.2,
     batch_size=128,
     random_state=42,
-    cache=False,
+    cache=True,
 ):
 
     def decompose_label(file_path: str):
