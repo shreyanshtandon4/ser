@@ -1,45 +1,60 @@
 import tensorflow as tf
-import keras
-from keras import layers as L
-from keras import Model
+from tensorflow.keras import layers as L
+from tensorflow.keras.models import Model
 
 class SpeechModel:
-    def __init__(self, num_output_classes) -> None:
+    def __init__(self, num_output_classes):
         self.num_output_classes = num_output_classes
 
     def getRAVDESS(self) -> Model:
         input_layer = L.Input(shape=(193, 1))
 
-        cnn1 = L.Conv1D(256, (5))(input_layer)
-        batch_norm1 = L.BatchNormalization()(cnn1)
-        relu1 = L.ReLU()(batch_norm1)
+        # First convolutional layer
+        x = L.Conv1D(filters=256, kernel_size=5, strides=1, padding='valid')(input_layer)
+        x = L.BatchNormalization()(x)
+        x = L.Activation('relu')(x)
 
-        cnn2 = L.Conv1D(128, (5))(relu1)
-        relu2 = L.ReLU()(cnn2)
-        dropout1 = L.Dropout(0.1)(relu2)
-        batch_norm2 = L.BatchNormalization()(dropout1)
+        # Second convolutional layer
+        x = L.Conv1D(filters=128, kernel_size=5, strides=1, padding='valid')(x)
+        x = L.Activation('relu')(x)
+        x = L.Dropout(0.1)(x)
+        x = L.BatchNormalization()(x)
 
-        max_pool1 = L.MaxPool1D(8)(batch_norm2)
+        # Max pooling layer
+        x = L.MaxPooling1D(pool_size=8)(x)
 
-        conv3 = L.Conv1D(128, (5))(max_pool1)
-        relu3 = L.ReLU()(conv3)
-        conv4 = L.Conv1D(128, (5))(relu3)
-        relu4 = L.ReLU()(conv4)
-        conv5 = L.Conv1D(128, (5))(relu4)
-        batch_norm4 = L.BatchNormalization()(conv5)
-        relu5 = L.ReLU()(batch_norm4)
-        dropout2 = L.Dropout(0.2)(relu5)
+        # Third convolutional layer
+        x = L.Conv1D(filters=128, kernel_size=5, strides=1, padding='valid')(x)
+        x = L.Activation('relu')(x)
 
-        conv6 = L.Conv1D(128, (5))(dropout2)
-        flatten = L.Flatten()(conv6)
-        dropout3 = L.Dropout(0.2)(flatten)
+        # Fourth convolutional layer
+        x = L.Conv1D(filters=128, kernel_size=5, strides=1, padding='valid')(x)
+        x = L.Activation('relu')(x)
 
-        output_logits = L.Dense(self.num_output_classes)(dropout3)
-        batch_norm5 = L.BatchNormalization()(output_logits)
-        softmax = L.Softmax()(batch_norm5)
-        model = Model(inputs=[input_layer], outputs=[softmax])
-        optimizer = tf.keras.optimizers.RMSprop(1e-5)
-        loss = tf.keras.losses.SparseCategoricalCrossentropy()
-        model.compile(optimizer=optimizer, loss=loss)
+        # Fifth convolutional layer
+        x = L.Conv1D(filters=128, kernel_size=5, strides=1, padding='valid')(x)
+        x = L.BatchNormalization()(x)
+        x = L.Activation('relu')(x)
+        x = L.Dropout(0.2)(x)
+
+        # Flatten and dropout
+        x = L.Flatten()(x)
+        x = L.Dropout(0.2)(x)
+
+        # Fully connected output layer
+        x = L.Dense(self.num_output_classes)(x)
+        x = L.BatchNormalization()(x)
+        output = L.Activation('softmax')(x)
+
+        # Define the model
+        model = Model(inputs=input_layer, outputs=output)
+
+        # RMSProp optimizer with specified learning rate and decay
+        optimizer = tf.keras.optimizers.RMSprop(learning_rate=1e-5, weight_decay=1e-6)
+
+        # Compile the model
+        model.compile(optimizer=optimizer,
+                      loss='sparse_categorical_crossentropy',
+                      metrics=['accuracy'])
 
         return model

@@ -4,6 +4,7 @@ import librosa
 import os
 import numpy as np
 from SpeechModel import SpeechModel
+from CNNLTSMModel import CNNLSTMModel
 EMOTION_DICT_RAVDESS = {
     "01": "neutral",
     "02": "calm",
